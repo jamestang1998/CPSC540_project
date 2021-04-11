@@ -20,9 +20,11 @@ class SAG(BaseVROptimizer):
         self.passed_samples += 1
         for i in range(len(model_parameters['params'])):
             model_parameters['states'][i]['step'] += 1
+            d_p = model_parameters['grads'][i]
+            if d_p is None:
+                continue
             D = model_parameters['states'][i]['D']
             Y = model_parameters['states'][i]['Y']
-            d_p = model_parameters['grads'][i]
             j = self.current_datapoint  # Todo: extremely hacky, can we improve this?
             D = D - Y[j] + d_p
             Y[j] = d_p
