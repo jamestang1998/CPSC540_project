@@ -28,7 +28,7 @@ model_checkpoint = LinearRegression(inputDim, outputDim)
 criterion = torch.nn.MSELoss()
 # optimizer = torch.optim.SAG(model.parameters(), lr=learningRate)
 optimizer = SVRG(model.parameters(), N=x_train.shape[0], lr=learningRate)
-optimizer1 = SGD(model_checkpoint.parameters(), lr=learningRate)
+#optimizer1 = SGD(model_checkpoint.parameters(), lr=learningRate)
 
 for epoch in range(epochs):
     # Converting inputs and labels to Variable
@@ -61,12 +61,12 @@ for epoch in range(epochs):
       # get loss for the predicted output
       loss = criterion(outputs, labels)
       ##############################
-      i = np.random.choice(x_train.shape[0])
-      inputs = Variable(torch.from_numpy(x_train[i, :]))
-      labels = Variable(torch.from_numpy(y_train[i, :]))
+      j = np.random.choice(x_train.shape[0])
+      inputs = Variable(torch.from_numpy(x_train[j, :]))
+      labels = Variable(torch.from_numpy(y_train[j, :]))
 
       # Clear gradient buffers because we don't want any gradient from previous epoch to carry forward, dont want to cummulate gradients
-      #optimizer.zero_grad()
+      optimizer.zero_grad()
 
       # get output from the model, given the inputs
       outputs = model(inputs)
@@ -88,9 +88,9 @@ for epoch in range(epochs):
       optimizer.store_prev_grad(prev_param)
 
       optimizer.set_step_information({'current_datapoint': i})
-      optimizer1.zero_grad()
       # update parameters
       optimizer.step()
     model_checkpoint =  copy.deepcopy(model)
-
+    model_checkpoint.parameters
+    
     print('epoch {}, loss {}'.format(epoch, loss.item()))
