@@ -20,9 +20,11 @@ class SAGA(BaseVROptimizer):
         self.passed_samples += 1
         for i in range(len(model_parameters['params'])):
             model_parameters['states'][i]['step'] += 1
+            d_p = model_parameters['grads'][i]
+            if d_p is None:
+                continue
             mean_grad = model_parameters['states'][i]['mean']
             prev_grads = model_parameters['states'][i]['prev']
-            d_p = model_parameters['grads'][i]
             j = self.current_datapoint  # Todo: extremely hacky, can we improve this?
             saga_update = d_p - prev_grads[j] + mean_grad
             mean_grad += (1. / min(self.N, self.passed_samples)) * (d_p - prev_grads[j])
