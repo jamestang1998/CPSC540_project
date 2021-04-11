@@ -9,6 +9,8 @@ class SVRG(BaseVROptimizer):
         self.current_datapoint = -1
         self.passed_samples = 0
 
+        #self.prev_full_grad = []
+        #self.previous_parameters = []
         self.t = 10
         self.prev_full_grad = None
         super().__init__(params, use_numba, lr, eps)
@@ -25,7 +27,7 @@ class SVRG(BaseVROptimizer):
         self.passed_samples += 1
         for i in range(len(model_parameters['params'])):
             d_p = model_parameters['grads'][i]
-            #print(self.previous_parameters[i], " HELLO !??")
+        
             prev_d_p = self.previous_parameters[i]
 
             g_k = d_p - prev_d_p + self.prev_full_grad[i]
