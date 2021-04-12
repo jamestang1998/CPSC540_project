@@ -1,6 +1,6 @@
 import torch 
 import torch.nn as nn
-import torch.functional as F
+import torch.nn.functional as F
 
 # Code copied from: https://github.com/kilianFatras/variance_reduced_neural_networks/blob/master/SAGA.ipynb
 class CNN(nn.Module):
@@ -29,11 +29,11 @@ class CNN(nn.Module):
 
 # Code copied from: https://github.com/kilianFatras/variance_reduced_neural_networks/blob/master/SAGA.ipynb
 class MLP(nn.Module):
-    def __init__(self, input_dim):
+    def __init__(self, input_dim, output_dim):
         super(MLP, self).__init__()
         self.fc1 = nn.Linear(input_dim, 120)
         self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 10)
+        self.fc3 = nn.Linear(84, output_dim)
 
     def forward(self, x):
         '''
