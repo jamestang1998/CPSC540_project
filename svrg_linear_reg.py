@@ -66,7 +66,7 @@ for epoch in range(epochs):
       labels = Variable(torch.from_numpy(y_train[i, :]))
 
       # Clear gradient buffers because we don't want any gradient from previous epoch to carry forward, dont want to cummulate gradients
-      #optimizer.zero_grad()
+      optimizer.zero_grad()
 
       # get output from the model, given the inputs
       outputs = model(inputs)
