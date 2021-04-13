@@ -1,0 +1,2 @@
+use_optimizer="SVRG"
+T=100000
