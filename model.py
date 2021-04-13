@@ -4,14 +4,15 @@ import torch.nn.functional as F
 
 # Code copied from: https://github.com/kilianFatras/variance_reduced_neural_networks/blob/master/SAGA.ipynb
 class CNN(nn.Module):
-    def __init__(self, ):
+    def __init__(self, num_channels, intermediate_size, output_dim):
         super(CNN, self).__init__()
-        self.conv1 = nn.Conv2d(3, 6, 5)
+        self.intermediate_size = intermediate_size
+        self.conv1 = nn.Conv2d(num_channels, 6, 5)
         self.pool = nn.MaxPool2d(2, 2)
         self.conv2 = nn.Conv2d(6, 16, 5)
-        self.fc1 = nn.Linear(16 * 5 * 5, 120)
+        self.fc1 = nn.Linear(intermediate_size, 120)
         self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 10)
+        self.fc3 = nn.Linear(84, output_dim)
 
     def forward(self, x):
         '''
@@ -21,7 +22,7 @@ class CNN(nn.Module):
         '''
         x = self.pool(F.relu(self.conv1(x)))
         x = self.pool(F.relu(self.conv2(x)))
-        x = x.view(-1, 16 * 5 * 5)
+        x = x.view(-1, self.intermediate_size)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
