@@ -76,7 +76,7 @@ for epoch in range(n_epochs):
         optimizer.store_full_grad(list(model_checkpoint.parameters()))
         # clear the grads from the checkpoint model
         optimizer_checkpoint.zero_grad()
-        
+
     print("Inner Training Loop")
     for i, data in enumerate(trainloader):
         
@@ -101,7 +101,7 @@ for epoch in range(n_epochs):
 
         optimizer.step()
         
-        if i % 100 == 0:
+        if i % 1000 == 0:
             print("Epoch {} | Iteration {} | loss {}".format(epoch, i, loss.detach().item()))
 
 
