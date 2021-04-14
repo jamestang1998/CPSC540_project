@@ -1,6 +1,7 @@
 # CPSC540_project
 
 ## Using the main.py script
+Shown below is an example command line for using the main.py script, for more commandline args. look inside the main.py file
 ```bash
 python main.py --config config/SAG.txt --use_dataset MNIST --use_model MLP
 ```
