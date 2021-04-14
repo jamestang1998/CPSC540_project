@@ -1,4 +1,10 @@
 # CPSC540_project
+
+## Using the main.py script
+```
+python main.py --config config/SAG.txt --use_dataset MNIST --use_model MLP
+```bash
+
 Implementing and Testing Variance Reduced Method
 
 Hello? I'm Amin.
