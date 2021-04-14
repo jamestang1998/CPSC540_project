@@ -1,9 +1,9 @@
 # CPSC540_project
 
 ## Using the main.py script
-```
-python main.py --config config/SAG.txt --use_dataset MNIST --use_model MLP
 ```bash
+python main.py --config config/SAG.txt --use_dataset MNIST --use_model MLP
+```
 
 Implementing and Testing Variance Reduced Method
 
