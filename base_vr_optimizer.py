@@ -69,23 +69,18 @@ class BaseVROptimizer(Optimizer):
             for i, p in enumerate(new_params):
                 model_parameters['params'][i].data = torch.from_numpy(_transfer_to_shape(p, param_dims[i]))
         return 
-    def compute_one_step(self,params):
-        group = self.param_groups[0]
-        model_parameters = {'params': [], 'grads': [], 'states': []}
-        optimizer_parameters = group
+    def one_step_GD(self, closure=None):
 
-        if self.initial==False:
-            for param in group['params']:
-                self.initialize_state(param, self.state[param])
-            self.initial=True
+        group = self.param_groups[0]
+        model_parameters = {'params': []}
+        optimizer_parameters = group
 
         for param in group['params']:
             model_parameters['params'].append(param)
-            model_parameters['states'].append(self.state[param])
-            model_parameters['grads'].append(None if param.grad is None else param.grad.data)
         #print(model_parameters)
         if not self.use_numba:
-             self._compute_one_step(model_parameters, optimizer_parameters)
+             self._one_step_GD(model_parameters, optimizer_parameters)
+        return
     @abc.abstractmethod
     def _step(self, model_parameters, optimizer_parameters):
         pass

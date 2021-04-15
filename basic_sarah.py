@@ -28,7 +28,6 @@ class sarah(BaseVROptimizer):
         state['mean'] = torch.zeros(param.shape)
 
     def _step(self, model_parameters, optimizer_parameters):
-    #def _step(self, model_parameters, optimizer_parameters):
         lr = optimizer_parameters['lr']
          
         self.passed_samples += 1
@@ -46,6 +45,9 @@ class sarah(BaseVROptimizer):
         self.prev_full_grad = []
         for i in range(len(layerList)):
           self.prev_full_grad.append(layerList[i].grad)
+        #print(  self.param_groups[0]['params'][0])
+        #print(layerList[0])
+        #print(self.prev_full_grad)
         return
 
     def store_prev_grad(self, layerList):
@@ -53,12 +55,15 @@ class sarah(BaseVROptimizer):
         for i in range(len(layerList)):
           self.previous_parameters.append(layerList[i].grad)
         return
-    def _compute_one_step(self, model_parameters, optimizer_parameters):
+    def _one_step_GD(self, model_parameters, optimizer_parameters):
         lr = optimizer_parameters['lr']
 
         for i in range(len(model_parameters['params'])):
-            model_parameters['params'][i].add_(self.prev_full_grad[i], alpha=-lr)
-            #pass
+            #print(model_parameters['params'][i],i)
+            #print(self.prev_full_grad[i])
+            model_parameters['params'][i]=model_parameters['params'][i].add(self.prev_full_grad[i], alpha=-lr)
+            #print(model_parameters['params'][i],i)
+            pass
 
     '''
     def store_full_grad(self, model_parameters):
