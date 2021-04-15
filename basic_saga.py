@@ -1,5 +1,7 @@
 import torch
 from base_vr_optimizer import BaseVROptimizer
+import copy
+
 
 
 class SAGA(BaseVROptimizer):
@@ -27,8 +29,8 @@ class SAGA(BaseVROptimizer):
             prev_grads = model_parameters['states'][i]['prev']
             j = self.current_datapoint  # Todo: extremely hacky, can we improve this?
             saga_update = d_p - prev_grads[j] + mean_grad
-            mean_grad += (1. / min(self.N, self.passed_samples)) * (d_p - prev_grads[j])
-            prev_grads[j] = d_p
+            mean_grad += (1. / self.N) * (copy.deepcopy(d_p) - prev_grads[j])
+            prev_grads[j] = copy.deepcopy(d_p)
             model_parameters['params'][i].add_(saga_update, alpha=-lr)
         return None
 

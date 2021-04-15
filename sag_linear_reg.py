@@ -16,7 +16,7 @@ y_train = y_train.reshape(-1, 1)
 inputDim = 1        # takes variable 'x'
 outputDim = 1       # takes variable 'y'
 learningRate = 0.01
-epochs = 100
+epochs = 50
 
 model = LinearRegression(inputDim, outputDim)
 

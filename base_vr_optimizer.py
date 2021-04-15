@@ -35,6 +35,8 @@ class BaseVROptimizer(Optimizer):
             raise ValueError("Invalid epsilon: {}, should be >= 0.0".format(lr))
         defaults = dict(lr=lr, eps=eps)
         self.use_numba = use_numba
+        self.initial=False
+
         super(BaseVROptimizer, self).__init__(params, defaults)
 
     @torch.no_grad()
@@ -44,16 +46,18 @@ class BaseVROptimizer(Optimizer):
         model_parameters = {'params': [], 'grads': [], 'states': []}
         optimizer_parameters = group
 
-        for param in group['params']:
-            self.initialize_state(param, self.state[param])
+        if self.initial==False:
+            for param in group['params']:
+                self.initialize_state(param, self.state[param])
+            self.initial=True
 
         for param in group['params']:
             model_parameters['params'].append(param)
             model_parameters['states'].append(self.state[param])
             model_parameters['grads'].append(None if param.grad is None else param.grad.data)
-
+        #print(model_parameters)
         if not self.use_numba:
-            loss = self._step(model_parameters, optimizer_parameters)
+             self._step(model_parameters, optimizer_parameters)
         else:
             params = [p.data.numpy() for p in model_parameters['params']]
             grads = [g.numpy() for g in model_parameters['grads']]
@@ -64,8 +68,24 @@ class BaseVROptimizer(Optimizer):
             loss, new_params = self._step_numba(params, grads, optimizer_parameters)
             for i, p in enumerate(new_params):
                 model_parameters['params'][i].data = torch.from_numpy(_transfer_to_shape(p, param_dims[i]))
-        return loss
+        return 
+    def compute_one_step(self,params):
+        group = self.param_groups[0]
+        model_parameters = {'params': [], 'grads': [], 'states': []}
+        optimizer_parameters = group
 
+        if self.initial==False:
+            for param in group['params']:
+                self.initialize_state(param, self.state[param])
+            self.initial=True
+
+        for param in group['params']:
+            model_parameters['params'].append(param)
+            model_parameters['states'].append(self.state[param])
+            model_parameters['grads'].append(None if param.grad is None else param.grad.data)
+        #print(model_parameters)
+        if not self.use_numba:
+             self._compute_one_step(model_parameters, optimizer_parameters)
     @abc.abstractmethod
     def _step(self, model_parameters, optimizer_parameters):
         pass
