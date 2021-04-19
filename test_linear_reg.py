@@ -23,7 +23,7 @@ model = LinearRegression(inputDim, outputDim)
 criterion = torch.nn.MSELoss()
 # optimizer = torch.optim.SAG(model.parameters(), lr=learningRate)
 optimizer = SGD(model.parameters(), lr=learningRate)
-
+print(list(model.parameters()))
 for epoch in range(epochs):
     # Converting inputs and labels to Variable
     inputs = Variable(torch.from_numpy(x_train))

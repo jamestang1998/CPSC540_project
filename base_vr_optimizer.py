@@ -66,6 +66,18 @@ class BaseVROptimizer(Optimizer):
                 model_parameters['params'][i].data = torch.from_numpy(_transfer_to_shape(p, param_dims[i]))
         return loss
 
+    def one_step_GD(self, closure=None):
+
+        group = self.param_groups[0]
+        model_parameters = {'params': []}
+        optimizer_parameters = group
+
+        for param in group['params']:
+            model_parameters['params'].append(param)
+        #print(model_parameters)
+        if not self.use_numba:
+             self._one_step_GD(model_parameters, optimizer_parameters)
+        return
     @abc.abstractmethod
     def _step(self, model_parameters, optimizer_parameters):
         pass
