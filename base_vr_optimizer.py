@@ -45,7 +45,9 @@ class BaseVROptimizer(Optimizer):
         optimizer_parameters = group
 
         for param in group['params']:
-            self.initialize_state(param, self.state[param])
+            if '__start__' not in self.state[param]:
+                self.state[param]['__start__'] = True
+                self.initialize_state(param, self.state[param])
 
         for param in group['params']:
             model_parameters['params'].append(param)
