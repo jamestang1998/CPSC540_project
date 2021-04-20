@@ -68,6 +68,10 @@ class BaseVROptimizer(Optimizer):
                 model_parameters['params'][i].data = torch.from_numpy(_transfer_to_shape(p, param_dims[i]))
         return loss
 
+    def populate_initial_gradients(self, current_datapoint):
+        for param in self.param_groups[0]['params']:
+            self.state[param]['__initial_grad'][current_datapoint] = None if param.grad is None else param.grad.data
+
     def one_step_GD(self, closure=None):
 
         group = self.param_groups[0]
@@ -80,6 +84,11 @@ class BaseVROptimizer(Optimizer):
         if not self.use_numba:
              self._one_step_GD(model_parameters, optimizer_parameters)
         return
+
+    @abc.abstractmethod
+    def _one_step_GD(self, model_parameters, optimizer_parameters):
+        pass
+
     @abc.abstractmethod
     def _step(self, model_parameters, optimizer_parameters):
         pass

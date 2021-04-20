@@ -5,7 +5,7 @@ from torch.autograd import Variable
 from linear_regression import LinearRegression
 
 # create dummy data for training
-x_values = [i for i in range(11)]
+x_values = [i for i in range(101)]
 x_train = np.array(x_values, dtype=np.float32)
 x_train = x_train.reshape(-1, 1)
 
@@ -15,14 +15,14 @@ y_train = y_train.reshape(-1, 1)
 
 inputDim = 1        # takes variable 'x'
 outputDim = 1       # takes variable 'y'
-learningRate = 0.01
+learningRate = 0.001
 epochs = 100
 
 model = LinearRegression(inputDim, outputDim)
 
 criterion = torch.nn.MSELoss()
-# optimizer = torch.optim.SAG(model.parameters(), lr=learningRate)
-optimizer = SAGA(model.parameters(), N=x_train.shape[0], lr=learningRate)
+optimizer = torch.optim.SGD(model.parameters(), lr=learningRate)
+# optimizer = SAGA(model.parameters(), N=x_train.shape[0], lr=learningRate)
 
 for epoch in range(epochs):
     # Converting inputs and labels to Variable
@@ -42,7 +42,7 @@ for epoch in range(epochs):
     # get gradients w.r.t to parameters
     loss.backward()
 
-    optimizer.set_step_information({'current_datapoint': i})
+    # optimizer.set_step_information({'current_datapoint': i})
 
     # update parameters
     optimizer.step()
