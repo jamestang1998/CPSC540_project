@@ -6,6 +6,7 @@ from torch import optim
 import basic_sag
 import basic_saga
 import basic_sgd
+import basic_finito
 from sklearn.preprocessing import LabelEncoder
 from torch.utils.data import Dataset, DataLoader
 
@@ -52,7 +53,6 @@ def train(model, x, y, index, optimizer, criterion):
     output = model(x)
     loss = criterion(output, y)
     loss.backward()
-    optimizer.set_step_information({'current_datapoint': index})
     optimizer.step()
     return loss, output
 
@@ -69,17 +69,12 @@ net = Network()
 
 EPOCHS = 200
 BATCH_SIZE = 1
-LR = 1e-2
+LR = 1e-3
 data = TitanicDataset('data/train.csv')
 data_train = DataLoader(dataset=data, batch_size=BATCH_SIZE, shuffle=True)
 
 criterion = nn.BCELoss()
-# optm = optim.Adam(net.parameters(), lr=0.01)
-# optm = optim.SGD(net.parameters(), lr=0.001)
-# optm = basic_sgd.SGD(net.parameters(), use_numba=False, lr=0.01)
-optm = basic_sag.SAG(net.parameters(), N=data.inp.shape[0], use_numba=False, lr=LR)
-# optm = basic_saga.SAGA(net.parameters(), N=data.inp.shape[0], use_numba=False, lr=0.01)
-# optm = basic_sgd.SGD(net.parameters(), use_numba=False, lr=0.001)
+optm = basic_finito.Finito(net.parameters(), N=data.inp.shape[0], use_numba=False, lr=LR)
 
 # populating initial_grads
 for bidx, batch in tqdm(enumerate(data_train)):
@@ -91,10 +86,11 @@ for epoch in range(EPOCHS):
     epoch_loss = 0
     correct = 0
     z = 0
-    for bidx, batch in tqdm(enumerate(data_train)):
-        x_train, y_train, idx = batch['inp'], batch['oup'], batch['idx']
-        x_train = x_train.view(-1, 9)
-        loss, predictions = train(net, x_train, y_train, idx, optm, criterion)
+    for tmp in range(len(data_train)):
+        i = optm.current_datapoint
+        x_train = torch.Tensor(data.inp[i])
+        y_train = torch.Tensor(data.oup[i])
+        loss, predictions = train(net, x_train, y_train, i, optm, criterion)
         for idx, i in enumerate(predictions):
             i = torch.round(i)
             if i == y_train[idx]:

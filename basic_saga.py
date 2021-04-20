@@ -9,11 +9,13 @@ class SAGA(BaseVROptimizer):
         self.current_datapoint = -1
         self.passed_samples = 0
         super().__init__(params, use_numba, lr, eps)
+        for param in self.param_groups[0]['params']:
+            self.state[param]['__initial_grad'] = torch.zeros([self.N] + list(param.shape))
 
     def initialize_state(self, param, state):
         state['step'] = 0
-        state['prev'] = [torch.zeros(param.shape)] * self.N  # memory
-        state['mean'] = torch.zeros(param.shape)
+        state['prev'] = state['__initial_grad']  # memory
+        state['mean'] = torch.squeeze(state['__initial_grad'].mean(axis=0))
 
     def _step(self, model_parameters, optimizer_parameters):
         lr = optimizer_parameters['lr']
@@ -25,10 +27,12 @@ class SAGA(BaseVROptimizer):
                 continue
             mean_grad = model_parameters['states'][i]['mean']
             prev_grads = model_parameters['states'][i]['prev']
-            j = self.current_datapoint  # Todo: extremely hacky, can we improve this?
-            saga_update = d_p - prev_grads[j] + mean_grad
-            mean_grad += (1. / min(self.N, self.passed_samples)) * (d_p - prev_grads[j])
+            j = self.current_datapoint.item()  # Todo: extremely hacky, can we improve this?
+            saga_update = d_p - torch.squeeze(prev_grads[j]) + mean_grad
+            mean_grad += (1. / min(self.N, self.passed_samples)) * (d_p - torch.squeeze(prev_grads[j]))
             prev_grads[j] = d_p
+            # if torch.norm(d_p) <= 1e-10:
+            #     print('WTF norm of gradient at {} for param {} = {}'.format(j, i, torch.norm(d_p)))
             model_parameters['params'][i].add_(saga_update, alpha=-lr)
         return None
 
