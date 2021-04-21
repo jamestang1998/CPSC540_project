@@ -34,8 +34,11 @@ def build_optimizer(optimizer_name, model, lr, N):
         optimizer = SAG(model.parameters(), N=N, lr=lr)
     elif optimizer_name == 'SAGA':
         optimizer = SAGA(model.parameters(), N=N, lr=lr)
-    else: #optimizer_name == "SVRG"
+    elif optimizer_name == "SVRG":
         optimizer = SVRG(model.parameters(), N=N, lr=lr)
+    else:
+        optimizer = None
+        assert optimizer != None
     return optimizer
 
 def create_folder(root, run):
