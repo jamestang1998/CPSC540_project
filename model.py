@@ -32,8 +32,8 @@ class CNN(nn.Module):
 class MLP(nn.Module):
     def __init__(self, input_dim, output_dim):
         super(MLP, self).__init__()
-        self.fc1 = nn.Linear(input_dim, 120)
-        self.fc2 = nn.Linear(120, 84)
+        self.fc1 = nn.Linear(input_dim, 84)
+        # self.fc2 = nn.Linear(120, 84)
         self.fc3 = nn.Linear(84, output_dim)
 
     def forward(self, x):
@@ -43,8 +43,8 @@ class MLP(nn.Module):
         return : classification
         '''
         x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
+        x = F.relu(self.fc3(x))
+        # x = self.fc3(x)
         return x
 
 class RNN(nn.Module):
