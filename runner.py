@@ -78,11 +78,8 @@ def compute_full_grad(model, model_checkpoint, dataloader, model_type, criterion
 
 # FOR SVRG
 def basic_svrg_train(epoch, dataloader, T, current_iteration, model, model_checkpoint, optimizer, optimizer_checkpoint,\
-<<<<<<< HEAD
                      criterion, device, model_type, training=True, writer=None, update=2000, run_list=None):
-=======
-                     criterion, device, model_type, training=True, writer=None, update=1000):
->>>>>>> 8fe07e01974bd65d8dc1db30b85e90a7ef5402ba
+
     epoch_loss = 0
     running_loss = 0
     count = 0
