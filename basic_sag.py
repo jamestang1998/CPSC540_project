@@ -15,22 +15,24 @@ class SAG(BaseVROptimizer):
     def initialize_state(self, param, state):
         state['step'] = 0
         state['Y'] = state['__initial_grad']  # memory n * d
-        state['D'] = torch.squeeze(state['__initial_grad'].mean(axis=0))
+        state['D'] = state['__initial_grad'].mean(axis=0)
 
     def _step(self, model_parameters, optimizer_parameters):
         lr = optimizer_parameters['lr']
         self.passed_samples += 1
         for i in range(len(model_parameters['params'])):
             model_parameters['states'][i]['step'] += 1
-            d_p = model_parameters['grads'][i]
+            d_p = model_parameters['grads'][i].clone()
             if d_p is None:
                 continue
-            D = model_parameters['states'][i]['D']
-            Y = model_parameters['states'][i]['Y']
+            D = model_parameters['states'][i]['D'].clone()
             j = self.current_datapoint  # Todo: extremely hacky, can we improve this?
-            D = D - torch.squeeze(Y[j]) + d_p
-            Y[j] = d_p
-            model_parameters['params'][i].add_(D, alpha=-lr/min(self.N, self.passed_samples))
+            Y = model_parameters['states'][i]['Y'][j].clone()
+            D = D - Y + d_p
+            model_parameters['states'][i]['D'] = D
+            model_parameters['states'][i]['Y'][j] = d_p
+            # model_parameters['params'][i].add_(D, alpha=-lr/min(self.N, self.passed_samples))
+            model_parameters['params'][i].add_(D, alpha=-lr/self.N)
         return None
 
     def _one_step_GD(self, model_parameters, optimizer_parameters):
