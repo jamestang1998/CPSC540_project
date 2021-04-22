@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import copy
 
 # For SAG and SAGA
-def basic_train(epoch, dataloader, model, optimizer, criterion, device, model_type, writer=None, update=2000, run_list=None):
+def basic_train(epoch, dataloader, model, use_optimizer, optimizer, criterion, device, model_type, writer=None, update=2000, run_list=None):
     epoch_loss = 0
     running_loss = 0
     count = 0
@@ -26,7 +26,9 @@ def basic_train(epoch, dataloader, model, optimizer, criterion, device, model_ty
         output = model(img)
 
         loss = criterion(output, label)
-        optimizer.set_step_information({'current_datapoint': index})
+        
+        if use_optimizer in ['SAG', 'SAGA']:
+            optimizer.set_step_information({'current_datapoint': index})
 
         loss.backward()
         optimizer.step()

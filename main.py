@@ -52,12 +52,6 @@ def config_parser():
     parser.add_argument('--no_grid', dest='grid', action='store_false')
     parser.set_defaults(attn=False)
 
-
-    # Grid Search
-    parser.add_argument('--grid', dest='grid', action='store_true')
-    parser.add_argument('--no_grid', dest='grid', action='store_false')
-    parser.set_defaults(attn=False)
-
     parser.add_argument("--grid_lr", nargs="+", default=[0.001])
     
     # SVRG
@@ -183,7 +177,7 @@ def train(total_epochs, learning_rate, batch_size, use_dataset, num_workers, run
         
         # Training loop
         if use_optimizer != "SVRG":
-            train_dict = runner.basic_train(epoch, trainloader, model, optimizer, criterion, device, use_model, \
+            train_dict = runner.basic_train(epoch, trainloader, model, use_optimizer, optimizer, criterion, device, use_model, \
                                             writer, update=2000, run_list=run_list)
             model = train_dict['model']
             optimizer = train_dict['optimizer']
