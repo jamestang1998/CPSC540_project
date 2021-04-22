@@ -16,7 +16,10 @@ import utils
 import runner
 
 import pickle
+<<<<<<< HEAD
 from CustomMNISTDataset import MNISTDataset
+=======
+>>>>>>> 8fe07e01974bd65d8dc1db30b85e90a7ef5402ba
 
 from model import MLP, CNN, RNN
 
@@ -51,6 +54,14 @@ def config_parser():
     parser.add_argument('--no_grid', dest='grid', action='store_false')
     parser.set_defaults(attn=False)
 
+<<<<<<< HEAD
+=======
+    # Grid Search
+    parser.add_argument('--grid', dest='grid', action='store_true')
+    parser.add_argument('--no_grid', dest='grid', action='store_false')
+    parser.set_defaults(attn=False)
+
+>>>>>>> 8fe07e01974bd65d8dc1db30b85e90a7ef5402ba
     parser.add_argument("--grid_lr", nargs="+", default=[0.001])
     
     # SVRG
@@ -68,6 +79,7 @@ def config_parser():
     
     return parser
 
+<<<<<<< HEAD
 
 # FOR SAG AND SAGA
 ######################################################################
@@ -92,6 +104,12 @@ def train(total_epochs, learning_rate, batch_size, use_dataset, num_workers, run
 
     run_list = []
 
+=======
+def train(total_epochs, learning_rate, batch_size, use_dataset, num_workers, run_folder, model_path, use_optimizer, use_model, T, seed):
+
+    run_list = []
+
+>>>>>>> 8fe07e01974bd65d8dc1db30b85e90a7ef5402ba
     torch.manual_seed(seed)
 
     # device = torch.device("cuda:{}".format(args.cuda_num) if torch.cuda.is_available() else "cpu")
@@ -126,6 +144,7 @@ def train(total_epochs, learning_rate, batch_size, use_dataset, num_workers, run
     
     else: # it's MNIST
         transform = transforms.Compose(
+<<<<<<< HEAD
                     [transforms.ToTensor(),
                     transforms.Normalize((0.5,), (0.5,))])
         
@@ -140,6 +159,16 @@ def train(total_epochs, learning_rate, batch_size, use_dataset, num_workers, run
 #                                             download=False, transform=transform)
 
         testset = MNISTDataset(root='./data/MNIST', train=False, transform=transform)
+=======
+                    [transforms.ToTensor()])
+        trainset = torchvision.datasets.MNIST(root='./data', train=True,
+                                        download=False, transform=transform)
+        trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
+                                                shuffle=True, num_workers=num_workers)
+
+        testset = torchvision.datasets.MNIST(root='./data', train=False,
+                                            download=False, transform=transform)
+>>>>>>> 8fe07e01974bd65d8dc1db30b85e90a7ef5402ba
         testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
                                                 shuffle=False, num_workers=num_workers)
     
@@ -177,22 +206,38 @@ def train(total_epochs, learning_rate, batch_size, use_dataset, num_workers, run
         
         # Training loop
         if use_optimizer != "SVRG":
+<<<<<<< HEAD
             train_dict = runner.basic_train(epoch, trainloader, model, optimizer, criterion, device, use_model, \
                                             writer, update=2000, run_list=run_list)
+=======
+            train_dict = runner.basic_train(epoch, trainloader, model, optimizer, criterion, device, use_model, writer, update=2000)
+>>>>>>> 8fe07e01974bd65d8dc1db30b85e90a7ef5402ba
             model = train_dict['model']
             optimizer = train_dict['optimizer']
             training_loss = train_dict['loss']
             run_list = train_dict['run_list']
         else:
+<<<<<<< HEAD
             train_dict = runner.basic_svrg_train(epoch, trainloader, T, current_iteration, model, model_checkpoint, optimizer, \
                                                  optimizer_checkpoint,\
                                                  criterion, device, use_model, writer, update=2000, run_list=run_list)
+=======
+            train_dict = runner.basic_svrg_train(epoch, trainloader, T, current_iteration, model, model_checkpoint, optimizer, optimizer_checkpoint,\
+                                                 criterion, device, use_model, writer, update=2000)
+>>>>>>> 8fe07e01974bd65d8dc1db30b85e90a7ef5402ba
             model = train_dict['model']
             optimizer = train_dict['optimizer']
             model_checkpoint = train_dict['model_checkpoint']
             optimizer_checkpoint = train_dict['optimizer_checkpoint']
             training_loss = train_dict['loss'] 
+<<<<<<< HEAD
             run_list = train_dict['run_list']        
+=======
+
+        writer.add_scalar('Training Loss', training_loss, epoch)
+        run_list.append(training_loss)    
+        
+>>>>>>> 8fe07e01974bd65d8dc1db30b85e90a7ef5402ba
 
         """SAVE MODEL AND OPTIMIZER"""
         training_file = os.path.join(model_folder, "latest_epoch.tar")
@@ -253,6 +298,7 @@ if __name__ == "__main__":
     print(run_dict)
           
     if grid:
+<<<<<<< HEAD
         with open(os.path.join('dicts', "{}-{}-{}-{}.pickle".format(use_optimizer, use_model, use_dataset, grid_lr)), 'wb') as f:
             pickle.dump(run_dict, f)
     else:
@@ -260,3 +306,10 @@ if __name__ == "__main__":
             pickle.dump(run_dict, f)
             
     print('DONE SAVING')
+=======
+        with open(os.path.join('dicts', '{}-{}-{}-{}.pickle'.format(use_optimizer, use_model, use_dataset, grid_lr)), 'wb') as f:
+            pickle.dump(run_dict, f)
+    else:
+        with open(os.path.join('dicts', '{}-{}-{}-{}.pickle'.format(use_optimizer, use_model, use_dataset, learning_rate)), 'wb') as f:
+            pickle.dump(run_dict, f)
+>>>>>>> 8fe07e01974bd65d8dc1db30b85e90a7ef5402ba

@@ -9,10 +9,18 @@ class CNN(nn.Module):
         self.intermediate_size = intermediate_size
         self.conv1 = nn.Conv2d(1, 4, 5)
         self.pool = nn.MaxPool2d(2, 2)
+<<<<<<< HEAD
         self.conv2 = nn.Conv2d(4, 8, 5)
         self.fc1 = nn.Linear(128, 64)
         self.fc2 = nn.Linear(64, 32)
         self.fc3 = nn.Linear(32, 10)
+=======
+        self.conv2 = nn.Conv2d(6, 16, 5)
+        self.fc1 = nn.Linear(intermediate_size, 120)
+        self.fc2 = nn.Linear(120, 84)
+        self.fc3 = nn.Linear(84, output_dim)
+        self.softmax = nn.Softmax(dim=1)
+>>>>>>> 8fe07e01974bd65d8dc1db30b85e90a7ef5402ba
 
     def forward(self, x):
         '''
@@ -26,6 +34,7 @@ class CNN(nn.Module):
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
+        x = self.softmax(x)
         return x
     
 # Code copied from: https://github.com/kilianFatras/variance_reduced_neural_networks/blob/master/SAGA.ipynb
