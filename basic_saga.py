@@ -15,24 +15,22 @@ class SAGA(BaseVROptimizer):
     def initialize_state(self, param, state):
         state['step'] = 0
         state['prev'] = state['__initial_grad']  # memory
-        state['mean'] = torch.squeeze(state['__initial_grad'].mean(axis=0))
+        state['mean'] = state['__initial_grad'].mean(axis=0)
 
     def _step(self, model_parameters, optimizer_parameters):
         lr = optimizer_parameters['lr']
         self.passed_samples += 1
         for i in range(len(model_parameters['params'])):
             model_parameters['states'][i]['step'] += 1
-            d_p = model_parameters['grads'][i]
+            d_p = model_parameters['grads'][i].clone()
             if d_p is None:
                 continue
-            mean_grad = model_parameters['states'][i]['mean']
-            prev_grads = model_parameters['states'][i]['prev']
             j = self.current_datapoint.item()  # Todo: extremely hacky, can we improve this?
-            saga_update = d_p - torch.squeeze(prev_grads[j]) + mean_grad
-            mean_grad += (1. / min(self.N, self.passed_samples)) * (d_p - torch.squeeze(prev_grads[j]))
-            prev_grads[j] = d_p
-            # if torch.norm(d_p) <= 1e-10:
-            #     print('WTF norm of gradient at {} for param {} = {}'.format(j, i, torch.norm(d_p)))
+            mean_grad = model_parameters['states'][i]['mean'].clone()
+            prev_grads = model_parameters['states'][i]['prev'][j].clone()
+            saga_update = d_p - prev_grads + mean_grad
+            model_parameters['states'][i]['mean'] += (1. / self.N) * (d_p - prev_grads)
+            model_parameters['states'][i]['prev'][j] = d_p
             model_parameters['params'][i].add_(saga_update, alpha=-lr)
         return None
 
