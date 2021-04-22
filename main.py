@@ -107,12 +107,12 @@ def train(total_epochs, learning_rate, batch_size, use_dataset, num_workers, run
         transform = transforms.Compose(
                     [transforms.ToTensor()])
         trainset = torchvision.datasets.MNIST(root='./data', train=True,
-                                        download=True, transform=transform)
+                                        download=False, transform=transform)
         trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
-                                                shuffle=True, num_workers=0)
+                                                shuffle=True, num_workers=num_workers)
 
         testset = torchvision.datasets.MNIST(root='./data', train=False,
-                                            download=True, transform=transform)
+                                            download=False, transform=transform)
         testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
                                                 shuffle=False, num_workers=num_workers)
     
@@ -120,14 +120,14 @@ def train(total_epochs, learning_rate, batch_size, use_dataset, num_workers, run
     print('Test Examples: {}'.format(len(testset)))
             
     # Initialize Models
-    print('INITIALIZING MODELS')
+    print('INITIALIZING MODELS: {}'.format(use_model))
     model = utils.build_model(use_model, use_dataset, device)
     if use_optimizer == 'SVRG':
         model_checkpoint = utils.build_model(use_model, use_dataset, device)
     else:
         model_checkpoint = None
     
-    print('INITIALIZING OPTIMIZER')
+    print('INITIALIZING OPTIMIZER: {}'.format(use_optimizer))
     optimizer = utils.build_optimizer(use_optimizer, model, learning_rate, len(trainset))
     if use_optimizer == 'SVRG':
         optimizer_checkpoint = utils.build_optimizer(use_optimizer, model_checkpoint, learning_rate, len(trainset))
@@ -145,13 +145,13 @@ def train(total_epochs, learning_rate, batch_size, use_dataset, num_workers, run
         
         # Training loop
         if use_optimizer != "SVRG":
-            train_dict = runner.basic_train(epoch, trainloader, model, optimizer, criterion, device, use_model, writer, update=100)
+            train_dict = runner.basic_train(epoch, trainloader, model, optimizer, criterion, device, use_model, writer, update=2000)
             model = train_dict['model']
             optimizer = train_dict['optimizer']
             training_loss = train_dict['loss']
         else:
             train_dict = runner.basic_svrg_train(epoch, trainloader, T, current_iteration, model, model_checkpoint, optimizer, optimizer_checkpoint,\
-                                                 criterion, device, use_model, writer, update=100)
+                                                 criterion, device, use_model, writer, update=2000)
             model = train_dict['model']
             optimizer = train_dict['optimizer']
             model_checkpoint = train_dict['model_checkpoint']
@@ -218,5 +218,11 @@ if __name__ == "__main__":
         run_list, save_folder = train(total_epochs, learning_rate, batch_size, use_dataset, num_workers, run_folder, model_path, use_optimizer, use_model, T, seed)
         run_dict[learning_rate] = run_list
     
-    with open(os.path.join(save_folder, 'run_data.pickle'), 'wb') as f:
-        pickle.dump(run_dict, f)
+    print(run_dict)
+          
+    if grid:
+        with open(os.path.join('dicts', '{}-{}-{}-{}.pickle'.format(use_optimizer, use_model, use_dataset, grid_lr)), 'wb') as f:
+            pickle.dump(run_dict, f)
+    else:
+        with open(os.path.join('dicts', '{}-{}-{}-{}.pickle'.format(use_optimizer, use_model, use_dataset, learning_rate)), 'wb') as f:
+            pickle.dump(run_dict, f)
