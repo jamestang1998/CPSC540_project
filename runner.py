@@ -6,12 +6,16 @@ from torch.utils.tensorboard import SummaryWriter
 import matplotlib.pyplot as plt
 import copy
 
-def basic_train(epoch, dataloader, model, optimizer, criterion, device, model_type, writer=None, update=100):
+# For SAG and SAGA
+def basic_train(epoch, dataloader, model, optimizer, criterion, device, model_type, writer=None, update=2000, run_list=None):
     epoch_loss = 0
+    running_loss = 0
+    count = 0
     for i, data in enumerate(dataloader):
         optimizer.zero_grad()
 
-        img, label = data
+        index, img, label = data
+        index = index.item()
 
         if model_type == "MLP":
             img = img.view(img.shape[0], -1)
@@ -22,16 +26,26 @@ def basic_train(epoch, dataloader, model, optimizer, criterion, device, model_ty
         output = model(img)
 
         loss = criterion(output, label)
+        optimizer.set_step_information({'current_datapoint': index})
 
         loss.backward()
         optimizer.step()
-
-        epoch_loss += loss.detach().cpu().item()
+        
+        loss = loss.detach().cpu().item()
+        epoch_loss += loss
+        running_loss += loss
+        count += 1
 
         if i % update == 0:
-            print("Epoch: {} | Iteration {} | Loss: {}".format(epoch, i, loss.detach().cpu().item()))
-    return {'model': model, 'optimizer': optimizer, 'loss': epoch_loss/len(dataloader)}
+            print("Epoch: {} | Iteration {} | Loss: {}".format(epoch, i, running_loss/count))
+            writer.add_scalar('Training Loss', running_loss/count, len(run_list)*update)
+            run_list.append(running_loss/count)
+            running_loss = 0
+            count = 0
+        
+    return {'model': model, 'optimizer': optimizer, 'loss': epoch_loss/len(dataloader), 'run_list': run_list}
 
+# FOR SVRG
 def compute_full_grad(model, model_checkpoint, dataloader, model_type, criterion, device, optimizer, optimizer_checkpoint):
     print("Computing Full Gradient")
     # copy the latest "training model"
@@ -62,10 +76,12 @@ def compute_full_grad(model, model_checkpoint, dataloader, model_type, criterion
 
     return model, model_checkpoint, optimizer, optimizer_checkpoint
 
-
+# FOR SVRG
 def basic_svrg_train(epoch, dataloader, T, current_iteration, model, model_checkpoint, optimizer, optimizer_checkpoint,\
-                     criterion, device, model_type, training=True, writer=None, update=1000):
+                     criterion, device, model_type, training=True, writer=None, update=2000, run_list=None):
     epoch_loss = 0
+    running_loss = 0
+    count = 0
     for i, data in enumerate(dataloader):
 
         if current_iteration % T == 0:
@@ -100,10 +116,18 @@ def basic_svrg_train(epoch, dataloader, T, current_iteration, model, model_check
 
         current_iteration += 1
 
-        epoch_loss += loss.detach().cpu().item()
+        loss = loss.detach().cpu().item()
+        epoch_loss += loss
+        running_loss += loss
+        count += 1
 
         if i % update == 0:
-            print("Epoch: {} | Iteration {} | Loss: {}".format(epoch, i, loss.detach().cpu().item()))
-
+            print("Epoch: {} | Iteration {} | Loss: {}".format(epoch, i, running_loss/count))
+            writer.add_scalar('Training Loss', running_loss/count, len(run_list)*update)
+            run_list.append(running_loss/count)
+            running_loss = 0
+            count = 0
+        
     return {'model': model, 'optimizer': optimizer, 'model_checkpoint': model_checkpoint,\
-            'optimizer_checkpoint':optimizer_checkpoint, 'current_iteration': current_iteration, 'loss': epoch_loss/len(dataloader)}
+            'optimizer_checkpoint':optimizer_checkpoint, 'current_iteration': current_iteration, 'loss': epoch_loss/len(dataloader),\
+            'run_list': run_list}

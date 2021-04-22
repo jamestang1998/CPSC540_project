@@ -16,6 +16,7 @@ import utils
 import runner
 
 import pickle
+from CustomMNISTDataset import MNISTDataset
 
 from model import MLP, CNN, RNN
 
@@ -43,7 +44,7 @@ def config_parser():
     parser.add_argument('--use_optimizer', type=str,
                         help='which optimizer to use', default='SGD')
     parser.add_argument('--use_model', type=str,
-                        help='which model to use', default='MLP')
+                        help='which model to use', default='CNN')
 
     # Grid Search
     parser.add_argument('--grid', dest='grid', action='store_true')
@@ -66,6 +67,26 @@ def config_parser():
                         help='where to store model checkpoints', default='model')
     
     return parser
+
+
+# FOR SAG AND SAGA
+######################################################################
+def populate_gradient(model, x, y, index, optimizer, criterion):
+    model.zero_grad()
+    output = model(x)
+    loss = criterion(output, y)
+    loss.backward()
+    optimizer.populate_initial_gradients(index)
+
+def populate_initial_grads(net, dataloader, optm, criterion):
+    print('POPULATING INITIAL GRADIENTS')
+    for i, data in enumerate(dataloader):
+        if i % 10000 == 0:
+            print("{}/{}".format(i, len(dataloader)))
+        index, inputs, labels = data
+        index = index.item()
+        populate_gradient(net, inputs, labels, index, optm, criterion)
+######################################################################
 
 def train(total_epochs, learning_rate, batch_size, use_dataset, num_workers, run_folder, model_path, use_optimizer, use_model, T, seed):
 
@@ -105,14 +126,20 @@ def train(total_epochs, learning_rate, batch_size, use_dataset, num_workers, run
     
     else: # it's MNIST
         transform = transforms.Compose(
-                    [transforms.ToTensor()])
-        trainset = torchvision.datasets.MNIST(root='./data', train=True,
-                                        download=False, transform=transform)
+                    [transforms.ToTensor(),
+                    transforms.Normalize((0.5,), (0.5,))])
+        
+#         trainset = torchvision.datasets.MNIST(root='./data', train=True,
+#                                         download=False, transform=transform)
+
+        trainset = MNISTDataset(root='./data/MNIST', train=True, transform=transform)
         trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
                                                 shuffle=True, num_workers=num_workers)
 
-        testset = torchvision.datasets.MNIST(root='./data', train=False,
-                                            download=False, transform=transform)
+#         testset = torchvision.datasets.MNIST(root='./data', train=False,
+#                                             download=False, transform=transform)
+
+        testset = MNISTDataset(root='./data/MNIST', train=False, transform=transform)
         testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
                                                 shuffle=False, num_workers=num_workers)
     
@@ -139,28 +166,33 @@ def train(total_epochs, learning_rate, batch_size, use_dataset, num_workers, run
     criterion = nn.CrossEntropyLoss()
 
     current_iteration = 0
+    
+    # Populate the initial gradients
+    if use_optimizer in ['SAG', 'SAGA']:
+#         print("uncomment this")
+        populate_initial_grads(model, trainloader, optimizer, criterion)
 
     print('Starting Training')
     for epoch in range(total_epochs):
         
         # Training loop
         if use_optimizer != "SVRG":
-            train_dict = runner.basic_train(epoch, trainloader, model, optimizer, criterion, device, use_model, writer, update=2000)
+            train_dict = runner.basic_train(epoch, trainloader, model, optimizer, criterion, device, use_model, \
+                                            writer, update=2000, run_list=run_list)
             model = train_dict['model']
             optimizer = train_dict['optimizer']
             training_loss = train_dict['loss']
+            run_list = train_dict['run_list']
         else:
-            train_dict = runner.basic_svrg_train(epoch, trainloader, T, current_iteration, model, model_checkpoint, optimizer, optimizer_checkpoint,\
-                                                 criterion, device, use_model, writer, update=2000)
+            train_dict = runner.basic_svrg_train(epoch, trainloader, T, current_iteration, model, model_checkpoint, optimizer, \
+                                                 optimizer_checkpoint,\
+                                                 criterion, device, use_model, writer, update=2000, run_list=run_list)
             model = train_dict['model']
             optimizer = train_dict['optimizer']
             model_checkpoint = train_dict['model_checkpoint']
             optimizer_checkpoint = train_dict['optimizer_checkpoint']
             training_loss = train_dict['loss'] 
-
-        writer.add_scalar('Training Loss', training_loss, epoch)
-        run_list.append(training_loss)    
-        
+            run_list = train_dict['run_list']        
 
         """SAVE MODEL AND OPTIMIZER"""
         training_file = os.path.join(model_folder, "latest_epoch.tar")
@@ -221,8 +253,10 @@ if __name__ == "__main__":
     print(run_dict)
           
     if grid:
-        with open(os.path.join('dicts', '{}-{}-{}-{}.pickle'.format(use_optimizer, use_model, use_dataset, grid_lr)), 'wb') as f:
+        with open(os.path.join('dicts', "{}-{}-{}-{}.pickle".format(use_optimizer, use_model, use_dataset, grid_lr)), 'wb') as f:
             pickle.dump(run_dict, f)
     else:
-        with open(os.path.join('dicts', '{}-{}-{}-{}.pickle'.format(use_optimizer, use_model, use_dataset, learning_rate)), 'wb') as f:
+        with open(os.path.join('dicts', "{}-{}-{}-{}.pickle".format(use_optimizer, use_model, use_dataset, learning_rate)), 'wb') as f:
             pickle.dump(run_dict, f)
+            
+    print('DONE SAVING')
