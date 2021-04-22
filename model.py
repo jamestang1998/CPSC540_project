@@ -13,6 +13,7 @@ class CNN(nn.Module):
         self.fc1 = nn.Linear(intermediate_size, 120)
         self.fc2 = nn.Linear(120, 84)
         self.fc3 = nn.Linear(84, output_dim)
+        self.softmax = nn.Softmax(dim=1)
 
     def forward(self, x):
         '''
@@ -26,6 +27,7 @@ class CNN(nn.Module):
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
+        x = self.softmax(x)
         return x
 
 # Code copied from: https://github.com/kilianFatras/variance_reduced_neural_networks/blob/master/SAGA.ipynb
@@ -35,6 +37,7 @@ class MLP(nn.Module):
         self.fc1 = nn.Linear(input_dim, 84)
         # self.fc2 = nn.Linear(120, 84)
         self.fc3 = nn.Linear(84, output_dim)
+        self.softmax = nn.Softmax(dim=1)
 
     def forward(self, x):
         '''
@@ -42,9 +45,10 @@ class MLP(nn.Module):
         goal : predict x's classification
         return : classification
         '''
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc3(x))
+        x = F.sigmoid(self.fc1(x))
+        x = F.sigmoid(self.fc3(x))
         # x = self.fc3(x)
+        x = self.softmax(x)
         return x
 
 class RNN(nn.Module):
