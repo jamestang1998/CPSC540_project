@@ -25,7 +25,7 @@ class SAGA(BaseVROptimizer):
             d_p = model_parameters['grads'][i].clone()
             if d_p is None:
                 continue
-            j = self.current_datapoint.item()  # Todo: extremely hacky, can we improve this?
+            j = self.current_datapoint  # Todo: extremely hacky, can we improve this?
             mean_grad = model_parameters['states'][i]['mean'].clone()
             prev_grads = model_parameters['states'][i]['prev'][j].clone()
             saga_update = d_p - prev_grads + mean_grad
