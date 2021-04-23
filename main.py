@@ -78,6 +78,7 @@ def populate_gradient(model, x, y, index, optimizer, criterion):
     loss = criterion(output, y)
     loss.backward()
     optimizer.populate_initial_gradients(index)
+    return optimizer
 
 def populate_initial_grads(net, dataloader, optm, criterion):
     print('POPULATING INITIAL GRADIENTS')
@@ -86,7 +87,8 @@ def populate_initial_grads(net, dataloader, optm, criterion):
             print("{}/{}".format(i, len(dataloader)))
         index, inputs, labels = data
         index = index.item()
-        populate_gradient(net, inputs, labels, index, optm, criterion)
+        optm = populate_gradient(net, inputs, labels, index, optm, criterion)
+    return optm
 ######################################################################
 
 def train(total_epochs, learning_rate, batch_size, use_dataset, num_workers, run_folder, model_path, use_optimizer, use_model, T, seed):
@@ -149,7 +151,7 @@ def train(total_epochs, learning_rate, batch_size, use_dataset, num_workers, run
     # Initialize Models
     print('INITIALIZING MODELS: {}'.format(use_model))
     model = utils.build_model(use_model, use_dataset, device)
-    if use_optimizer == 'SVRG':
+    if use_optimizer == 'SVRG' or use_optimizer == 'SARAH':
         model_checkpoint = utils.build_model(use_model, use_dataset, device)
     else:
         model_checkpoint = None
@@ -170,9 +172,10 @@ def train(total_epochs, learning_rate, batch_size, use_dataset, num_workers, run
     # Populate the initial gradients
     if use_optimizer in ['SAG', 'SAGA']:
 #         print("uncomment this")
-        populate_initial_grads(model, trainloader, optimizer, criterion)
+        optimizer = populate_initial_grads(model, trainloader, optimizer, criterion)
 
     print('Starting Training')
+    current_iteration = 0
     for epoch in range(total_epochs):
         
         # Training loop
@@ -187,19 +190,19 @@ def train(total_epochs, learning_rate, batch_size, use_dataset, num_workers, run
             training_loss = train_dict['loss']
             run_list = train_dict['run_list']
         elif use_optimizer == "SARAH":
-            train_dict = runner.basic_svrg_train(epoch, trainloader, T, current_iteration, model, model_checkpoint, optimizer, \
-                                                 optimizer_checkpoint,\
-                                                 criterion, device, use_model, writer = writer, update=2000, run_list=run_list)
+            train_dict = runner.basic_sarah_train(epoch, trainloader, T, current_iteration, model, model_checkpoint, optimizer,\
+                                                 criterion, device, use_model, writer = writer, update=2000, run_list=run_list, batch_sizes = 1)
+            
+            current_iteration = train_dict['current_iteration']
             model = train_dict['model']
             optimizer = train_dict['optimizer']
             model_checkpoint = train_dict['model_checkpoint']
-            optimizer_checkpoint = train_dict['optimizer_checkpoint']
             training_loss = train_dict['loss'] 
             run_list = train_dict['run_list']       
         else:
             train_dict = runner.basic_svrg_train(epoch, trainloader, T, current_iteration, model, model_checkpoint, optimizer, \
                                                  optimizer_checkpoint,\
-                                                 criterion, device, use_model, writer = writer, update=2000, run_list=run_list)
+                                                 criterion, device, use_model, writer=writer, update=2000, run_list=run_list)
             model = train_dict['model']
             optimizer = train_dict['optimizer']
             model_checkpoint = train_dict['model_checkpoint']
@@ -208,7 +211,7 @@ def train(total_epochs, learning_rate, batch_size, use_dataset, num_workers, run
             run_list = train_dict['run_list']        
 
         """SAVE MODEL AND OPTIMIZER"""
-        training_file = os.path.join(model_folder, "latest_epoch.tar")
+        training_file = os.path.join(model_folder, "epoch{}.tar".format(epoch))
         torch.save({
                     'epoch': epoch,
                     'batch_size': batch_size,

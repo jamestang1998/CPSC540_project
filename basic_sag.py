@@ -31,8 +31,8 @@ class SAG(BaseVROptimizer):
             D = D - Y + d_p
             model_parameters['states'][i]['D'] = D
             model_parameters['states'][i]['Y'][j] = d_p
-            # model_parameters['params'][i].add_(D, alpha=-lr/min(self.N, self.passed_samples))
-            model_parameters['params'][i].add_(D, alpha=-lr/self.N)
+            model_parameters['params'][i].add_(D, alpha=-lr/min(self.N, self.passed_samples))
+#             model_parameters['params'][i].add_(D, alpha=-lr/self.N)
         return None
 
     def _one_step_GD(self, model_parameters, optimizer_parameters):
