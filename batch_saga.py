@@ -2,10 +2,11 @@ import torch
 from base_vr_optimizer import BaseVROptimizer
 
 
-class BATCH_SAG(BaseVROptimizer):
+class BATCH_SAGA(BaseVROptimizer):
 
-    def __init__(self, params, N, use_numba=False, lr=1e-2, eps=1e-6):
+    def __init__(self, params, N, batch, use_numba=False, lr=1e-2, eps=1e-6):
         self.N = N
+        self.batch = batch
         self.current_datapoint = -1
         self.passed_samples = 0
         super().__init__(params, use_numba, lr, eps)
@@ -14,29 +15,28 @@ class BATCH_SAG(BaseVROptimizer):
 
     def initialize_state(self, param, state):
         state['step'] = 0
-        state['Y'] = state['__initial_grad']  # memory n * d
-        state['D'] = state['__initial_grad'].mean(axis=0)
+        state['prev'] = state['__initial_grad']  # memory
+        state['mean'] = state['__initial_grad'].mean(axis=0)
 
     def _step(self, model_parameters, optimizer_parameters):
         lr = optimizer_parameters['lr']
-        self.passed_samples += 1
+        self.passed_samples += self.batch
         for i in range(len(model_parameters['params'])):
             model_parameters['states'][i]['step'] += 1
             d_p = model_parameters['grads'][i].clone()
             if d_p is None:
                 continue
-            D = model_parameters['states'][i]['D'].clone()
-            j = self.current_datapoint  # Todo: extremely hacky, can we improve this?
-            Y = model_parameters['states'][i]['Y'][j].clone()
-            D = D - Y + d_p
-            model_parameters['states'][i]['D'] = D
-            model_parameters['states'][i]['Y'][j] = d_p
-            # model_parameters['params'][i].add_(D, alpha=-lr/min(self.N, self.passed_samples))
-            model_parameters['params'][i].add_(D, alpha=-lr/self.N)
+            print(self.current_datapoint)
+            for j in self.current_datapoint:
+                print(j, "hi!!!!!")
+                #j = self.current_datapoint  # Todo: extremely hacky, can we improve this?
+                mean_grad = model_parameters['states'][i]['mean'].clone()
+                prev_grads = model_parameters['states'][i]['prev'][j].clone()
+                saga_update = d_p - prev_grads + mean_grad
+                model_parameters['states'][i]['mean'] += (1. / int(self.N/self.batch)) * (d_p - prev_grads)
+                model_parameters['states'][i]['prev'][j] = d_p
+                model_parameters['params'][i].add_(saga_update, alpha=-lr)
         return None
-
-    def _one_step_GD(self, model_parameters, optimizer_parameters):
-        pass
 
     def set_step_information(self, info_dict):
         if 'current_datapoint' in info_dict:

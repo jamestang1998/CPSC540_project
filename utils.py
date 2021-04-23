@@ -3,6 +3,7 @@ import torch.optim as optim
 from basic_svrg import SVRG
 from basic_sag import SAG
 from basic_saga import SAGA
+from basic_sarah import SARAH
 from model import MLP, CNN, RNN
 
 def build_model(model_name, dataset_name, device):
@@ -34,8 +35,13 @@ def build_optimizer(optimizer_name, model, lr, N):
         optimizer = SAG(model.parameters(), N=N, lr=lr)
     elif optimizer_name == 'SAGA':
         optimizer = SAGA(model.parameters(), N=N, lr=lr)
-    else: #optimizer_name == "SVRG"
+    elif optimizer_name == "SVRG":
         optimizer = SVRG(model.parameters(), N=N, lr=lr)
+    elif optimizer_name == "SARAH":
+        optimizer = SARAH(model.parameters(), N=N, batch_sizes = 1, lr=lr)
+    else:
+        optimizer = None
+        assert optimizer != None
     return optimizer
 
 def create_folder(root, run):

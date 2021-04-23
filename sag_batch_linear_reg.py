@@ -17,7 +17,7 @@ y_values = [2*i + 1 for i in x_values]
 y_train = np.array(y_values, dtype=np.float32)
 y_train = y_train.reshape(-1, 1)
 '''
-x_train =np.linspace(0,10,30, dtype=np.float32)
+x_train =np.linspace(0,10,999, dtype=np.float32)
 x_train = x_train.reshape(-1, 1)
 
 y_values = [(2.0*i + 5.0) for i in x_train]
@@ -33,8 +33,8 @@ model = LinearRegression(inputDim, outputDim)
 
 criterion = torch.nn.MSELoss()
 # optimizer = torch.optim.SAG(model.parameters(), lr=learningRate)
-#optimizer = BATCH_SAG(model.parameters(), N=x_train.shape[0], lr=learningRate)
-optimizer = torch.optim.SGD(model.parameters(), lr=learningRate)
+optimizer = BATCH_SAG(model.parameters(), N=int(x_train.shape[0]/10), lr=learningRate)
+#optimizer = torch.optim.SGD(model.parameters(), lr=learningRate)
 
 class CustomDataset(Dataset):
     def __init__(self, labels, inputs, transform=None, target_transform=None):
@@ -50,8 +50,16 @@ class CustomDataset(Dataset):
     
 train_set = CustomDataset(x_train, y_train)
 
-train_loader = torch.utils.data.DataLoader(train_set, batch_size = 5, shuffle=True)
+train_loader = torch.utils.data.DataLoader(train_set, batch_size = 10, shuffle=True)
 
+for i in range(x_train.shape[0]):
+    inputs = Variable(torch.from_numpy(x_train[i, :]))
+    labels = Variable(torch.from_numpy(y_train[i, :]))
+    outputs = model(inputs)
+    loss = criterion(outputs, labels)
+    loss.backward()
+    optimizer.populate_initial_gradients(i)
+    
 for epoch in range(epochs):
     
     train_iter = iter(train_loader)
