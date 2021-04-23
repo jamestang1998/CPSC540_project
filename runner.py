@@ -38,8 +38,8 @@ def basic_train(epoch, dataloader, model, use_optimizer, optimizer, criterion, d
         running_loss += loss
         count += 1
 
-        if i % update == 0:
-            print("Epoch: {} | Iteration {} | Loss: {}".format(epoch, i, running_loss/count))
+        if i % update == update-1:
+            print("Epoch: {} | Iteration {} | Loss: {}".format(epoch, i+1, running_loss/count))
             writer.add_scalar('Training Loss', running_loss/count, len(run_list)*update)
             run_list.append(running_loss/count)
             running_loss = 0
@@ -58,7 +58,7 @@ def compute_full_grad(model, model_checkpoint, dataloader, model_type, criterion
         if i % 1000 == 0:
             print('{}/{}'.format(i, len(dataloader)))
 
-        img, label = data
+        index, img, label = data
 
         if model_type == "MLP":
             img = img.view(img.shape[0], -1)
@@ -93,7 +93,7 @@ def basic_svrg_train(epoch, dataloader, T, current_iteration, model, model_check
 
         optimizer.zero_grad()
 
-        img, label = data
+        index, img, label = data
 
         if model_type == "MLP":
             img = img.view(img.shape[0], -1)
@@ -124,8 +124,8 @@ def basic_svrg_train(epoch, dataloader, T, current_iteration, model, model_check
         running_loss += loss
         count += 1
 
-        if i % update == 0:
-            print("Epoch: {} | Iteration {} | Loss: {}".format(epoch, i, running_loss/count))
+        if i % update == update-1:
+            print("Epoch: {} | Iteration {} | Loss: {}".format(epoch, i+1, running_loss/count))
             writer.add_scalar('Training Loss', running_loss/count, len(run_list)*update)
             run_list.append(running_loss/count)
             running_loss = 0
