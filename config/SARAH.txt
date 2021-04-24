@@ -1,2 +1,2 @@
 use_optimizer="SARAH"
-T=100000
+T=60000
