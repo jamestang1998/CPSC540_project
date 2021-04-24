@@ -94,12 +94,13 @@ def basic_svrg_train(epoch, dataloader, T, current_iteration, model, model_check
     running_loss = 0
     count = 0
     for i, data in enumerate(dataloader):
+        
+        optimizer.zero_grad()
+        model_checkpoint.zero_grad()
 
         if current_iteration % T == 0:
             model, model_checkpoint, optimizer, optimizer_checkpoint = compute_full_grad(model, model_checkpoint, dataloader, model_type,\
                                                                                          criterion, device, optimizer, optimizer_checkpoint)
-
-        optimizer.zero_grad()
 
         index, img, label = data
 
@@ -135,8 +136,8 @@ def basic_svrg_train(epoch, dataloader, T, current_iteration, model, model_check
         #print(running_loss, " running_loss")
         #print(count, " count")
         #print(run_list, " run_list")
-        if i % update == 0:
-            print("Epoch: {} | Iteration {} | Loss: {}".format(epoch, i, running_loss/count))
+        if i % update == update-1:
+            print("Epoch: {} | Iteration {} | Loss: {}".format(epoch, i+1, running_loss/count))
             writer.add_scalar('Training Loss', running_loss/count, len(run_list)*update)
             run_list.append(running_loss/count)
             running_loss = 0
@@ -146,6 +147,7 @@ def basic_svrg_train(epoch, dataloader, T, current_iteration, model, model_check
             'optimizer_checkpoint':optimizer_checkpoint, 'current_iteration': current_iteration, 'loss': epoch_loss/len(dataloader),\
             'run_list': run_list}
 
+# For SARAH
 def compute_full_grad_SARAH(model, model_checkpoint, dataloader, model_type, criterion, device, optimizer):
     print("Computing Full Gradient")
     # copy the latest "training model"
@@ -155,10 +157,6 @@ def compute_full_grad_SARAH(model, model_checkpoint, dataloader, model_type, cri
     for i, data in enumerate(dataloader):
         if i % 1000 == 0:
             print('{}/{}'.format(i, len(dataloader)))
-        #print(len(data), " d a t a !!!")
-        #print(data[0].shape, " d a t a 0 shape!!!")
-        #print(data[1].shape, " d a t a 1 shape!!!")
-        #print(data[2].shape, " d a t a 2 shape!!!")
         index, img, label = data
 
         if model_type == "MLP":
@@ -182,11 +180,12 @@ def compute_full_grad_SARAH(model, model_checkpoint, dataloader, model_type, cri
     # clear the grads from the checkpoint model
     #optimizer_checkpoint.zero_grad()
     model_checkpoint.zero_grad() 
+    
     optimizer.one_step_GD()
 
     return model, model_checkpoint, optimizer
 
-
+# TODO STILL NEED TO FIX THIS!
 def basic_sarah_train(epoch, dataloader, T, current_iteration, model, model_checkpoint, optimizer,\
                      criterion, device, model_type, training=True, writer=None, update=2000, run_list=None, batch_sizes = 1):
 
@@ -194,32 +193,13 @@ def basic_sarah_train(epoch, dataloader, T, current_iteration, model, model_chec
     running_loss = 0
     count = 0
     for i, data in enumerate(dataloader):
+        
+        model.zero_grad()
+        model_checkpoint.zero_grad()
 
         if current_iteration % T == 0:
             model, model_checkpoint, optimizer = compute_full_grad_SARAH(model, model_checkpoint, dataloader, model_type,\
-                                                                                         criterion, device, optimizer)
-        
-        #optimizer.store_full_grad(list(model_checkpoint.parameters()))
-        #model_checkpoint.zero_grad() 
-        
-        #print('###### w0 we want ######')
-        #print(list(model_checkpoint.parameters()))
-        #using GD to update for the first step: w_1
-        #print('#######one step GD########')
-        
-        #optimizer.one_step_GD()
-        
-        #print('####### w1 #########')
-        #print(list(model.parameters()))
-        '''
-        m = np.random.choice(len(dataloader))
-        if m==0:
-            m=1
-        '''
-        #print('##########inner loop#########')
-        ##############################
-        model.zero_grad()
-        model_checkpoint.zero_grad()
+                                                                                         criterion, device, optimizer)       
         
         ### new training 
         index, img, label = data
@@ -243,7 +223,6 @@ def basic_sarah_train(epoch, dataloader, T, current_iteration, model, model_chec
 
         # store the current gradients of the checkpoint model
         optimizer.store_prev_grad(list(model_checkpoint.parameters()))
-
         optimizer.step()
 
         current_iteration += 1
@@ -260,11 +239,11 @@ def basic_sarah_train(epoch, dataloader, T, current_iteration, model, model_chec
             running_loss = 0
             count = 0
 
-        optimizer.store_prev_grad(list(model_checkpoint.parameters()))
-        model_checkpoint =  copy.deepcopy(model)
+#         optimizer.store_prev_grad(list(model_checkpoint.parameters()))
+#         model_checkpoint =  copy.deepcopy(model)
         # update parameters
-        optimizer.step()
-        model_checkpoint =  copy.deepcopy(model)
+#         optimizer.step()
+#         model_checkpoint =  copy.deepcopy(model)
 
         #print('epoch {}, loss {}'.format(epoch, loss.item()))
         

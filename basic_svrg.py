@@ -38,13 +38,13 @@ class SVRG(BaseVROptimizer):
     def store_full_grad(self, layerList):
         self.prev_full_grad = []
         for i in range(len(layerList)):
-          self.prev_full_grad.append(layerList[i].grad)
+            self.prev_full_grad.append(layerList[i].grad)
         return
 
     def store_prev_grad(self, layerList):
         self.previous_parameters = []
         for i in range(len(layerList)):
-          self.previous_parameters.append(layerList[i].grad)
+            self.previous_parameters.append(layerList[i].grad)
         return
     '''
     def store_full_grad(self, model_parameters):

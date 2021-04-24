@@ -189,32 +189,40 @@ def train(total_epochs, learning_rate, batch_size, use_dataset, num_workers, run
             optimizer = train_dict['optimizer']
             training_loss = train_dict['loss']
             run_list = train_dict['run_list']
+            
         elif use_optimizer == "SARAH":
+            # pick random T
+            current_iteration = 0
+            if epoch == 0:
+                T = len(trainloader)
+            else:
+                T = torch.randint(low=0, high=len(trainloader), size=(1,)).item()
             train_dict = runner.basic_sarah_train(epoch, trainloader, T, current_iteration, model, model_checkpoint, optimizer,\
                                                  criterion, device, use_model, writer = writer, update=2000, run_list=run_list, batch_sizes = 1)
-            
-            current_iteration = train_dict['current_iteration']
             model = train_dict['model']
             optimizer = train_dict['optimizer']
             model_checkpoint = train_dict['model_checkpoint']
             training_loss = train_dict['loss'] 
-            run_list = train_dict['run_list']       
+            run_list = train_dict['run_list']
+            
         else:
             train_dict = runner.basic_svrg_train(epoch, trainloader, T, current_iteration, model, model_checkpoint, optimizer, \
                                                  optimizer_checkpoint,\
                                                  criterion, device, use_model, writer=writer, update=2000, run_list=run_list)
+            
             model = train_dict['model']
             optimizer = train_dict['optimizer']
             model_checkpoint = train_dict['model_checkpoint']
             optimizer_checkpoint = train_dict['optimizer_checkpoint']
             training_loss = train_dict['loss'] 
-            run_list = train_dict['run_list']        
+            run_list = train_dict['run_list']
+            current_iteration = train_dict['current_iteration']
 
         """SAVE MODEL AND OPTIMIZER"""
         training_file = os.path.join(model_folder, "epoch{}.tar".format(epoch))
         torch.save({
                     'epoch': epoch,
-                    'batch_size': batch_size,
+                    'lr': learning_rate,
                     # 'validation_loss': validation_loss,
                     'lowest_validation_loss':lowest_validation_loss,
                     'model_state_dict': model.state_dict(),

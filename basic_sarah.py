@@ -40,9 +40,12 @@ class SARAH(BaseVROptimizer):
         
             prev_d_p = self.previous_parameters[i]
 
-            self.prev_full_grad[i] = (d_p - prev_d_p)/self.b + self.prev_full_grad[i]
+            # REMOVED THESE LINES - FRANK
+#             self.prev_full_grad[i] = (d_p - prev_d_p)/self.b + self.prev_full_grad[i]
+#             model_parameters['params'][i].data.add_(self.prev_full_grad[i], alpha=-lr)
 
-            model_parameters['params'][i].data.add_(self.prev_full_grad[i], alpha=-lr)
+            g_k = d_p - prev_d_p + self.prev_full_grad[i]
+            model_parameters['params'][i].data.add_(g_k, alpha=-lr)
         #print('###### vt ######')
         #print('vt',self.prev_full_grad)
         return
@@ -50,13 +53,13 @@ class SARAH(BaseVROptimizer):
     def store_full_grad(self, layerList):
         self.prev_full_grad = []
         for i in range(len(layerList)):
-          self.prev_full_grad.append(layerList[i].grad/self.N)
+            self.prev_full_grad.append(layerList[i].grad/self.N)
         return
 
     def store_prev_grad(self, layerList):
         self.previous_parameters = []
         for i in range(len(layerList)):
-          self.previous_parameters.append(layerList[i].grad)
+            self.previous_parameters.append(layerList[i].grad)
         #print(self.previous_parameters)
         return
     def _one_step_GD(self, model_parameters, optimizer_parameters):
