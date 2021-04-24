@@ -29,6 +29,9 @@ def basic_train(epoch, dataloader, model, use_optimizer, optimizer, criterion, d
         
         if use_optimizer in ['SAG', 'SAGA']:
             optimizer.set_step_information({'current_datapoint': index})
+        
+        if use_optimizer in ['Class_SAGA']:
+            optimizer.set_step_information({'current_datapoint': label.cpu().item()})
 
         loss.backward()
         optimizer.step()
