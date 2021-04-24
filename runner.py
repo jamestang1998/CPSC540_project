@@ -225,7 +225,7 @@ def basic_sarah_train(epoch, dataloader, T, current_iteration, model, model_chec
         index, img, label = data
 
         if model_type == "MLP":
-         img = img.view(img.shape[0], -1)
+             img = img.view(img.shape[0], -1)
 
         img = img.to(device)
         label = label.to(device)
@@ -254,67 +254,16 @@ def basic_sarah_train(epoch, dataloader, T, current_iteration, model, model_chec
         count += 1
 
         if i % update == update-1:
-         print("Epoch: {} | Iteration {} | Loss: {}".format(epoch, i+1, running_loss/count))
-         writer.add_scalar('Training Loss', running_loss/count, len(run_list)*update)
-         run_list.append(running_loss/count)
-         running_loss = 0
-         count = 0
-
-         optimizer.store_prev_grad(list(model_checkpoint.parameters()))
-         model_checkpoint =  copy.deepcopy(model)
-         # update parameters
-         optimizer.step()
-        '''
-        for i in range(m):
-          ##############################
-          model.zero_grad()
-          model_checkpoint.zero_grad()
-        
-          ### new training 
-          index, img, label = data
-
-          if model_type == "MLP":
-            img = img.view(img.shape[0], -1)
-
-          img = img.to(device)
-          label = label.to(device)
-          #print(" HIIIIIIIIIIIIIIIIIII !!!!!!!!!!!!")
-          
-          output = model(img)
-          checkpoint_output = model_checkpoint(img)
-
-          # get loss for the predicted output
-          loss = criterion(output, label)
-          checkpoint_loss = criterion(checkpoint_output, label)
-
-          # get gradients w.r.t to parameters
-          loss.backward()
-          checkpoint_loss.backward()
-
-          # store the current gradients of the checkpoint model
-          optimizer.store_prev_grad(list(model_checkpoint.parameters()))
-
-          optimizer.step()
-
-          current_iteration += 1
-
-          loss = loss.detach().cpu().item()
-          epoch_loss += loss
-          running_loss += loss
-          count += 1
-
-          if i % update == update-1:
             print("Epoch: {} | Iteration {} | Loss: {}".format(epoch, i+1, running_loss/count))
             writer.add_scalar('Training Loss', running_loss/count, len(run_list)*update)
             run_list.append(running_loss/count)
             running_loss = 0
             count = 0
 
-          optimizer.store_prev_grad(list(model_checkpoint.parameters()))
-          model_checkpoint =  copy.deepcopy(model)
-          # update parameters
-          optimizer.step()
-        '''
+        optimizer.store_prev_grad(list(model_checkpoint.parameters()))
+        model_checkpoint =  copy.deepcopy(model)
+        # update parameters
+        optimizer.step()
         model_checkpoint =  copy.deepcopy(model)
 
         #print('epoch {}, loss {}'.format(epoch, loss.item()))

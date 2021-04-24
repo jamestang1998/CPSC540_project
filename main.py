@@ -134,14 +134,14 @@ def train(total_epochs, learning_rate, batch_size, use_dataset, num_workers, run
         #trainset = torchvision.datasets.MNIST(root='/local/tangytob/CPSC540/data', train=True,
         #                                 download=True, transform=transform)
         print("DONE !!!!!!!!!!!!")
-        trainset = MNISTDataset(root='/local/tangytob/CPSC540/data/MNIST', train=True, transform=transform)
+        trainset = MNISTDataset(root='data/MNIST', train=True, transform=transform)
         trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
                                                 shuffle=True, num_workers=num_workers)
 
          #testset = torchvision.datasets.MNIST(root='./local/tangytob/CPSC540/data', train=False,
          #                                    download=True, transform=transform)
 
-        testset = MNISTDataset(root='/local/tangytob/CPSC540/data/MNIST', train=False, transform=transform)
+        testset = MNISTDataset(root='data/MNIST', train=False, transform=transform)
         testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
                                                 shuffle=False, num_workers=num_workers)
     
