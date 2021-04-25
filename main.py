@@ -17,6 +17,7 @@ import runner
 
 import pickle
 from CustomMNISTDataset import MNISTDataset
+from CustomCIFAR10Dataset import CustomCIFAR10
 
 
 from model import MLP, CNN, RNN
@@ -124,20 +125,17 @@ def train(total_epochs, learning_rate, batch_size, use_dataset, num_workers, run
     writer = SummaryWriter(os.path.join(run_folder, "{}-{}-{}-bs={}-lr={}".format(use_optimizer, use_model, use_dataset, batch_size, learning_rate)))
 
     print('INITIALIZING DATASET')
+    print("DATASET: ", use_dataset)
     if use_dataset == 'CIFAR':
         transform = transforms.Compose(
                     [transforms.ToTensor(),
                     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-        trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
-                                        download=True, transform=transform)
-        trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
-                                                shuffle=True, num_workers=0)
+        trainset = CustomCIFAR10(root='./data', train=True, download=True, transform=transform)
+        trainloader = torch.utils.data.DataLoader(trainset, batch_size=1, shuffle=True, num_workers=0)
 
-        testset = torchvision.datasets.CIFAR10(root='./data', train=False,
-                                            download=True, transform=transform)
-        testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
-                                                shuffle=False, num_workers=num_workers)
+        testset = CustomCIFAR10(root='./data', train=False, download=True, transform=transform)
+        testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
     
     else: # it's MNIST
         transform = transforms.Compose(

@@ -12,7 +12,7 @@ def build_model(model_name, dataset_name, device):
         input_size = 28*28*1
         output_size = 10
         input_channels = 1
-        intermediate_size = 256
+        intermediate_size = 128
         if model_name == 'MLP':
             model = MLP(input_size, output_size)
         else: # model_name == 'CNN':
@@ -22,7 +22,7 @@ def build_model(model_name, dataset_name, device):
         input_size = 32*32*3
         output_size = 10
         input_channels = 3
-        intermediate_size = 16 * 5 * 5
+        intermediate_size = 200
         if model_name == 'MLP':
             model = MLP(input_size, output_size)
         else:# model_name == 'CNN':
