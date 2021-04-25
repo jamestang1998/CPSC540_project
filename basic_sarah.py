@@ -43,9 +43,13 @@ class SARAH(BaseVROptimizer):
             # REMOVED THESE LINES - FRANK
 #             self.prev_full_grad[i] = (d_p - prev_d_p)/self.b + self.prev_full_grad[i]
 #             model_parameters['params'][i].data.add_(self.prev_full_grad[i], alpha=-lr)
-
-            g_k = d_p - prev_d_p + self.prev_full_grad[i]
-            model_parameters['params'][i].data.add_(g_k, alpha=-lr)
+            
+            #print(d_p, " DP")
+            #print(prev_d_p, " PREV_DP")
+            self.prev_full_grad[i] = d_p - prev_d_p + self.prev_full_grad[i].clone()
+            model_parameters['params'][i].data.add_(self.prev_full_grad[i].clone(), alpha=-lr)
+            #g_k = d_p - prev_d_p + self.prev_full_grad[i]
+            #model_parameters['params'][i].data.add_(g_k, alpha=-lr)
         #print('###### vt ######')
         #print('vt',self.prev_full_grad)
         return
@@ -70,7 +74,7 @@ class SARAH(BaseVROptimizer):
             #print(self.prev_full_grad[i])
             model_parameters['params'][i].data.add_(self.prev_full_grad[i], alpha=-lr)
             #print(model_parameters['params'][i],i)
-            pass
+            #pass
 
     def set_step_information(self, info_dict):
         if 'current_datapoint' in info_dict:

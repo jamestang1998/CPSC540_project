@@ -123,7 +123,7 @@ def basic_svrg_train(epoch, dataloader, T, current_iteration, model, model_check
 
         # store the current gradients of the checkpoint model
         optimizer.store_prev_grad(list(model_checkpoint.parameters()))
-
+        model_checkpoint = copy.deepcopy(model)
         optimizer.step()
 
         current_iteration += 1
@@ -171,7 +171,7 @@ def compute_full_grad_SARAH(model, model_checkpoint, dataloader, model_type, cri
         loss.backward()
         
         '''
-        if i == 5000: #DELETE THIS LINE LATER
+        if i == 3000: #DELETE THIS LINE LATER
             print("break!!!")
             break
         '''
@@ -223,6 +223,7 @@ def basic_sarah_train(epoch, dataloader, T, current_iteration, model, model_chec
 
         # store the current gradients of the checkpoint model
         optimizer.store_prev_grad(list(model_checkpoint.parameters()))
+        model_checkpoint = copy.deepcopy(model)
         optimizer.step()
 
         current_iteration += 1
