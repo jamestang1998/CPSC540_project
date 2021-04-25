@@ -91,6 +91,19 @@ def populate_initial_grads(net, dataloader, optm, criterion):
     return optm
 ######################################################################
 
+# FOR Class_SAGA
+######################################################################
+def populate_initial_grads_class(net, dataloader, optm, criterion):
+    print('POPULATING INITIAL GRADIENTS')
+    for i, data in enumerate(dataloader):
+        if i % 10000 == 0:
+            print("{}/{}".format(i, len(dataloader)))
+        index, inputs, labels = data
+        index = labels.item()
+        optm = populate_gradient(net, inputs, labels, index, optm, criterion)
+    return optm
+######################################################################
+
 def train(total_epochs, learning_rate, batch_size, use_dataset, num_workers, run_folder, model_path, use_optimizer, use_model, T, seed):
 
     run_list = []
@@ -157,7 +170,11 @@ def train(total_epochs, learning_rate, batch_size, use_dataset, num_workers, run
         model_checkpoint = None
     
     print('INITIALIZING OPTIMIZER: {}'.format(use_optimizer))
-    optimizer = utils.build_optimizer(use_optimizer, model, learning_rate, len(trainset))
+    if use_optimizer == "Class_SAGA":
+        optimizer = utils.build_optimizer(use_optimizer, model, learning_rate, 10) # 10 because that's the number of classes
+    else:
+        optimizer = utils.build_optimizer(use_optimizer, model, learning_rate, len(trainset))
+        
     if use_optimizer == 'SVRG':
         optimizer_checkpoint = utils.build_optimizer(use_optimizer, model_checkpoint, learning_rate, len(trainset))
     else:
@@ -173,13 +190,16 @@ def train(total_epochs, learning_rate, batch_size, use_dataset, num_workers, run
     if use_optimizer in ['SAG', 'SAGA']:
 #         print("uncomment this")
         optimizer = populate_initial_grads(model, trainloader, optimizer, criterion)
-
+    elif use_optimizer in ['Class_SAGA']:
+        print('populating Class_SAGA')
+        optimizer = populate_initial_grads_class(model, trainloader, optimizer, criterion)
+        
     print('Starting Training')
     current_iteration = 0
     for epoch in range(total_epochs):
         
         # Training loop
-        if use_optimizer == "SAG" or use_optimizer == "SAGA":
+        if use_optimizer in ["SGD", "SAG", "SAGA", "Class_SAGA"]:
             print(use_optimizer, " optimizer")
             train_dict = runner.basic_train(epoch, trainloader, model, use_optimizer, optimizer, criterion, device, use_model, \
                                             writer, update=2000, run_list=run_list)
@@ -251,7 +271,7 @@ if __name__ == "__main__":
     seed = args.seed
 
     assert use_dataset in ['MNIST', 'CIFAR']
-    assert use_optimizer in ['SGD', 'SAG', 'SAGA', 'SVRG', 'SARAH', 'FINITO']  
+    assert use_optimizer in ['SGD', 'SAG', 'SAGA', 'SVRG', 'SARAH', 'FINITO', 'Class_SAGA']  
     assert use_model in ['MLP', 'CNN', 'RNN']
     print("LINE 234 !!!!!!!!!!!!!!!!!!!!!!!!!!!")
     run_dict = {}

@@ -4,6 +4,7 @@ from basic_svrg import SVRG
 from basic_sag import SAG
 from basic_saga import SAGA
 from basic_sarah import SARAH
+from class_saga import Class_SAGA
 from model import MLP, CNN, RNN
 
 def build_model(model_name, dataset_name, device):
@@ -39,6 +40,8 @@ def build_optimizer(optimizer_name, model, lr, N):
         optimizer = SVRG(model.parameters(), N=N, lr=lr)
     elif optimizer_name == "SARAH":
         optimizer = SARAH(model.parameters(), N=N, batch_sizes = 1, lr=lr)
+    elif optimizer_name == "Class_SAGA":
+        optimizer = Class_SAGA(model.parameters(), N=N, lr=lr)
     else:
         optimizer = None
         assert optimizer != None
