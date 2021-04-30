@@ -64,9 +64,9 @@ def config_parser():
 
     # Logging/Monitoring
     parser.add_argument('--run_folder', type=str,
-                        help='folder to store run files', default="logs")
+                        help='folder to store run files', default="logs-long")
     parser.add_argument('--model_path', type=str,
-                        help='where to store model checkpoints', default='model')
+                        help='where to store model checkpoints', default='model-long')
     
     return parser
 
@@ -186,7 +186,6 @@ def train(total_epochs, learning_rate, batch_size, use_dataset, num_workers, run
     
     # Populate the initial gradients
     if use_optimizer in ['SAG', 'SAGA']:
-#         print("uncomment this")
         optimizer = populate_initial_grads(model, trainloader, optimizer, criterion)
     elif use_optimizer in ['Class_SAGA']:
         print('populating Class_SAGA')
@@ -195,7 +194,6 @@ def train(total_epochs, learning_rate, batch_size, use_dataset, num_workers, run
     print('Starting Training')
     current_iteration = 0
     for epoch in range(total_epochs):
-        
         # Training loop
         if use_optimizer in ["SGD", "SAG", "SAGA", "Class_SAGA"]:
             print(use_optimizer, " optimizer")
