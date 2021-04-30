@@ -22,7 +22,6 @@ class Finito(BaseVROptimizer):
 
     def __init__(self, params, N, use_numba=False, lr=1e-2, eps=1e-6):
         self.N = N
-        self.current_datapoint = -1
         self.passed_samples = set()
         self.random_points = list(range(N))
         random.shuffle(self.random_points)
@@ -39,11 +38,14 @@ class Finito(BaseVROptimizer):
         state['step'] = 0
         state['grads'] = state['__initial_grad']  # memory for gradients
         state['values'] = torch.zeros([self.N] + list(param.shape))  # memory for parameter values
+        self.passed_samples.add(self.current_datapoint)
+        state['values'][self.current_datapoint] = param.clone()
+        z = 1
 
     def _step(self, model_parameters, optimizer_parameters):
         lr = optimizer_parameters['lr']
         for i in range(len(model_parameters['params'])):
-            d_p = model_parameters['grads'][i]
+            d_p = model_parameters['grads'][i].clone()
             if d_p is None:
                 continue
             model_parameters['states'][i]['grads'][self.current_datapoint] = d_p
@@ -53,8 +55,8 @@ class Finito(BaseVROptimizer):
         next_datapoint = self.random_points[self.n_index]
         for i in range(len(model_parameters['params'])):
             model_parameters['states'][i]['step'] += 1
-            grads = model_parameters['states'][i]['grads']
-            param_values = model_parameters['states'][i]['values']
+            grads = model_parameters['states'][i]['grads'].clone()
+            param_values = model_parameters['states'][i]['values'].clone()
             if len(self.passed_samples) < self.N:
                 param_avg = param_values[list(self.passed_samples)].mean(axis=0)
                 grads_avg = grads[list(self.passed_samples)].mean(axis=0)
@@ -62,7 +64,7 @@ class Finito(BaseVROptimizer):
                 param_avg = param_values.mean(axis=0)
                 grads_avg = grads.mean(axis=0)
             model_parameters['params'][i] = param_avg - (1. / lr) * grads_avg
-            param_values[next_datapoint] = model_parameters['params'][i]
+            model_parameters['states'][i]['values'][next_datapoint] = model_parameters['params'][i].clone()
         self.passed_samples.add(next_datapoint)
         self.current_datapoint = next_datapoint
         return None

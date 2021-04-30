@@ -28,7 +28,7 @@ class SAG(BaseVROptimizer):
             D = model_parameters['states'][i]['D'].clone()
             j = self.current_datapoint  # Todo: extremely hacky, can we improve this?
             Y = model_parameters['states'][i]['Y'][j].clone()
-            D = D - Y + d_p
+            D = D - (1./self.N) * (Y - d_p)
             model_parameters['states'][i]['D'] = D
             model_parameters['states'][i]['Y'][j] = d_p
             model_parameters['params'][i].add_(D, alpha=-lr/min(self.N, self.passed_samples))

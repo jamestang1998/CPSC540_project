@@ -15,8 +15,8 @@ y_train = y_train.reshape(-1, 1)
 
 inputDim = 1        # takes variable 'x'
 outputDim = 1       # takes variable 'y'
-learningRate = 0.01
-epochs = 100
+learningRate = 1e4
+epochs = 1000
 
 model = LinearRegression(inputDim, outputDim)
 
@@ -24,10 +24,19 @@ criterion = torch.nn.MSELoss()
 # optimizer = torch.optim.SAG(model.parameters(), lr=learningRate)
 optimizer = Finito(model.parameters(), N=x_train.shape[0], lr=learningRate)
 
+
+for i in range(x_train.shape[0]):
+    inputs = Variable(torch.from_numpy(x_train[i, :]))
+    labels = Variable(torch.from_numpy(y_train[i, :]))
+    outputs = model(inputs)
+    loss = criterion(outputs, labels)
+    loss.backward()
+    optimizer.populate_initial_gradients(i)
+
+
 for epoch in range(epochs):
     # Converting inputs and labels to Variable
     i = optimizer.current_datapoint
-    print("i is: {}".format(i))
     inputs = Variable(torch.from_numpy(x_train[i, :]))
     labels = Variable(torch.from_numpy(y_train[i, :]))
 
