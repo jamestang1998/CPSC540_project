@@ -126,7 +126,6 @@ def basic_svrg_train(epoch, dataloader, T, current_iteration, model, model_check
 
         # store the current gradients of the checkpoint model
         optimizer.store_prev_grad(list(model_checkpoint.parameters()))
-        model_checkpoint = copy.deepcopy(model)
         optimizer.step()
 
         current_iteration += 1
